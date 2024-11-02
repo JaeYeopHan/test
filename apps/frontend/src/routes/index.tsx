@@ -3,6 +3,7 @@ import { DatePicker } from "@/components/date-picker/date-picker"
 import { Button } from "@/components/ui/button"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Container } from "@/components/ui/container"
+import { H1 } from "@/components/ui/h1"
 import { purchaseMessages } from "@/messages/purchases"
 import { createFileRoute, ErrorComponent, retainSearchParams } from "@tanstack/react-router"
 import { fallback, zodSearchValidator } from '@tanstack/router-zod-adapter'
@@ -55,7 +56,7 @@ function RouteComponent() {
 
   return (
     <Container>
-      <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-6">Frequency</h1>
+      <H1>Frequency</H1>
       <section className="pb-4">
         <div className="flex gap-4 py-2 items-center">
           <DatePicker

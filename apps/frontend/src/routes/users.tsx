@@ -1,3 +1,5 @@
+import { Container } from '@/components/ui/container'
+import { H1 } from '@/components/ui/h1'
 import { createFileRoute } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/users')({
@@ -5,5 +7,9 @@ export const Route = createFileRoute('/users')({
 })
 
 function RouteComponent() {
-  return <div className="p-2">Users</div>
+  return (
+    <Container>
+      <H1>Users</H1>
+    </Container>
+  )
 }
