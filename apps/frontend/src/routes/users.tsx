@@ -2,10 +2,10 @@ import { AppSkeleton } from '@/components/app/app-skeleton'
 import { DataTable } from '@/components/data-table/data-table'
 import { Button } from '@/components/ui/button'
 import { Container } from '@/components/ui/container'
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
 import { H1 } from '@/components/ui/h1'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { customersMessages } from '@/messages/customers'
 import { CustomerPurchaseRecord } from '@/models/customer/purchase'
@@ -76,10 +76,11 @@ function RouteComponent() {
           onValueChange={value => navigate({ search: { sort_total_amount: value as 'asc' | 'desc' } })}
         />
       </div>
-      <Drawer
-        direction='right'
-        onClose={() => {
-          navigate({ search: { detail_user_id: undefined, detail_user_name: undefined } })
+      <Sheet
+        onOpenChange={(open) => {
+          if (open === false) {
+            navigate({ search: { detail_user_id: undefined, detail_user_name: undefined } })
+          }
         }}
       >
         <CustomerPurchaseTable
@@ -87,16 +88,16 @@ function RouteComponent() {
             navigate({ search: { detail_user_id: row.id, detail_user_name: row.name } })
           }}
         />
-        <DrawerContent className='h-full right-0 left-auto'>
-          <DrawerHeader>
-            <DrawerTitle>[{detailUserId}] {detailUserName}</DrawerTitle>
-            <DrawerDescription>This action cannot be undone.</DrawerDescription>
-          </DrawerHeader>
+        <SheetContent className="w-full" side='right'>
+          <SheetHeader>
+            <SheetTitle>[{detailUserId}] {detailUserName}</SheetTitle>
+            <SheetDescription>{detailUserName}님의 상세 구매 내역입니다.</SheetDescription>
+          </SheetHeader>
           <Suspense fallback={<div>Loading...</div>}>
             {detailUserId != null ? <CustomerPurchaseDetail id={detailUserId} /> : null}
           </Suspense>
-        </DrawerContent>
-      </Drawer>
+        </SheetContent>
+      </Sheet>
     </Container>
   )
 }
@@ -226,12 +227,12 @@ function CustomerPurchaseTable({ onRowClick }: CustomerPurchaseTableProps) {
       data={data}
       onRowRender={(node, row) => {
         return (
-          <DrawerTrigger asChild onClick={() => {
+          <SheetTrigger asChild onClick={() => {
             onRowClick?.(row)
           }}
           >
             {node}
-          </DrawerTrigger>
+          </SheetTrigger>
         )
       }}
     />
@@ -252,6 +253,9 @@ function CustomerPurchaseDetail({ id }: { id: number }) {
     {
       accessorKey: "date",
       header: "Date",
+      cell: ({ row }) => {
+        return <div className="text-center px-4 whitespace-nowrap">{row.original.date}</div>
+      },
     },
     {
       accessorKey: "quantity",
@@ -264,6 +268,9 @@ function CustomerPurchaseDetail({ id }: { id: number }) {
     {
       accessorKey: "price",
       header: "Price",
+      cell: ({ row }) => {
+        return <div className="text-right px-4">{row.original.price.toLocaleString()}</div>
+      },
     },
     {
       accessorKey: "imgSrc",
