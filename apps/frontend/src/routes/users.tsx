@@ -2,21 +2,27 @@ import { AppSkeleton } from '@/components/app/app-skeleton'
 import { DataTable } from '@/components/data-table/data-table'
 import { Button } from '@/components/ui/button'
 import { Container } from '@/components/ui/container'
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
 import { H1 } from '@/components/ui/h1'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { customersMessages } from '@/messages/customers'
+import { CustomerPurchaseRecord } from '@/models/customer/purchase'
 import { useForm } from '@tanstack/react-form'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, ErrorComponent, retainSearchParams } from '@tanstack/react-router'
 import { ColumnDef } from '@tanstack/react-table'
 import { zodSearchValidator } from '@tanstack/router-zod-adapter'
 import { SearchIcon } from 'lucide-react'
+import { Suspense } from 'react'
 import { z } from 'zod'
 
 const SearchSchema = z.object({
   search_user_name: z.string().optional(),
   sort_total_amount: z.enum(['asc', 'desc']).optional(),
+  detail_user_id: z.number().optional(),
+  detail_user_name: z.string().optional(),
 })
 
 export const Route = createFileRoute('/users')({
@@ -51,10 +57,12 @@ type CustomerPurchaseSimpleRecord = {
 
 function RouteComponent() {
   const navigate = Route.useNavigate()
-  const { searchUserName, searchSortTotalAmount } = Route.useSearch({
+  const { searchUserName, searchSortTotalAmount, detailUserName, detailUserId } = Route.useSearch({
     select: (search) => ({
       searchUserName: search.search_user_name,
       searchSortTotalAmount: search.sort_total_amount,
+      detailUserName: search.detail_user_name,
+      detailUserId: search.detail_user_id,
     }),
   });
 
@@ -68,7 +76,27 @@ function RouteComponent() {
           onValueChange={value => navigate({ search: { sort_total_amount: value as 'asc' | 'desc' } })}
         />
       </div>
-      <CustomerPurchaseTable />
+      <Drawer
+        direction='right'
+        onClose={() => {
+          navigate({ search: { detail_user_id: undefined, detail_user_name: undefined } })
+        }}
+      >
+        <CustomerPurchaseTable
+          onRowClick={row => {
+            navigate({ search: { detail_user_id: row.id, detail_user_name: row.name } })
+          }}
+        />
+        <DrawerContent className='h-full right-0 left-auto'>
+          <DrawerHeader>
+            <DrawerTitle>[{detailUserId}] {detailUserName}</DrawerTitle>
+            <DrawerDescription>This action cannot be undone.</DrawerDescription>
+          </DrawerHeader>
+          <Suspense fallback={<div>Loading...</div>}>
+            {detailUserId != null ? <CustomerPurchaseDetail id={detailUserId} /> : null}
+          </Suspense>
+        </DrawerContent>
+      </Drawer>
     </Container>
   )
 }
@@ -152,7 +180,12 @@ function SortSelect({ value, onValueChange, className }: SortSelectProps) {
   )
 }
 
-function CustomerPurchaseTable() {
+
+interface CustomerPurchaseTableProps {
+  onRowClick?: (row: CustomerPurchaseSimpleRecord) => void
+}
+
+function CustomerPurchaseTable({ onRowClick }: CustomerPurchaseTableProps) {
   const data = Route.useLoaderData()
 
   const columns: ColumnDef<CustomerPurchaseSimpleRecord>[] = [
@@ -191,9 +224,60 @@ function CustomerPurchaseTable() {
     <DataTable
       columns={columns}
       data={data}
-      onRowClick={(row) => {
-        console.log(row)
+      onRowRender={(node, row) => {
+        return (
+          <DrawerTrigger asChild onClick={() => {
+            onRowClick?.(row)
+          }}
+          >
+            {node}
+          </DrawerTrigger>
+        )
       }}
+    />
+  )
+}
+
+function CustomerPurchaseDetail({ id }: { id: number }) {
+  const { data } = useSuspenseQuery({
+    queryKey: ['customer-purchases', id],
+    queryFn: () => {
+      if (id == null) {
+        return
+      }
+      return customersMessages.getPurchasesByCustomer({ customerId: id })
+    },
+  })
+  const columns: ColumnDef<CustomerPurchaseRecord>[] = [
+    {
+      accessorKey: "date",
+      header: "Date",
+    },
+    {
+      accessorKey: "quantity",
+      header: "Quantity",
+    },
+    {
+      accessorKey: "product",
+      header: "Product",
+    },
+    {
+      accessorKey: "price",
+      header: "Price",
+    },
+    {
+      accessorKey: "imgSrc",
+      header: "Image",
+      cell: ({ row }) => {
+        return <img src={row.original.imgSrc} alt="Product" width={100} height={100} />
+      },
+    },
+  ]
+
+  return (
+    <DataTable
+      columns={columns}
+      data={data ?? []}
     />
   )
 }
