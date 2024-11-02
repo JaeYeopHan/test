@@ -1,13 +1,12 @@
 import { httpClient } from "@/lib/http-client";
+import { PurchaseFrequencySchema } from "@/models/purchase/frequency";
 import { z } from "zod";
 
 interface PurchaseFrequencyMessages {
   getPurchaseFrequency: (params: GetPurchaseFrequencyParams) => Promise<GetPurchaseFrequencyResponse>
 }
 
-const GetPurchaseFrequencyResponseSchema = z.object({
-  frequency: z.record(z.number())
-})
+const GetPurchaseFrequencyResponseSchema = z.array(PurchaseFrequencySchema)
 
 const GetPurchaseFrequencyParamsSchema = z.object({
   from: z.string(),
