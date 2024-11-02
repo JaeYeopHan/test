@@ -1,13 +1,13 @@
 import Router from 'koa-router'
-import { getPurchases, getProducts } from '../data'
+import { getProducts, getPurchases } from '../data'
 
 const router = new Router()
 
 router.get('/api/purchase-frequency', async (ctx) => {
   try {
-    if (Math.random() <= 1) {
-      throw new Error('Intentional error occurred')
-    }
+    // if (Math.random() <= 1) {
+    //   throw new Error('Intentional error occurred')
+    // }
 
     const { from, to } = ctx.query
 
