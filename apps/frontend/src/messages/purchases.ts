@@ -2,7 +2,7 @@ import { httpClient } from "@/lib/http-client";
 import { PurchaseFrequencySchema } from "@/models/purchase/frequency";
 import { z } from "zod";
 
-interface PurchaseFrequencyMessages {
+interface PurchaseMessages {
   getPurchaseFrequency: (params: GetPurchaseFrequencyParams) => Promise<GetPurchaseFrequencyResponse>
 }
 
@@ -23,6 +23,6 @@ async function getPurchaseFrequency(_params: GetPurchaseFrequencyParams): Promis
   return GetPurchaseFrequencyResponseSchema.parse(_response)
 }
 
-export const purchaseFrequencyMessages: PurchaseFrequencyMessages = {
+export const purchaseMessages: PurchaseMessages = {
   getPurchaseFrequency,
 }

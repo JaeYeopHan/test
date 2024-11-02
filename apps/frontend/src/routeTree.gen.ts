@@ -8,24 +8,19 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
-
-// Create Virtual Routes
-
-const UsersLazyImport = createFileRoute('/users')()
+import { Route as UsersImport } from './routes/users'
 
 // Create/Update Routes
 
-const UsersLazyRoute = UsersLazyImport.update({
+const UsersRoute = UsersImport.update({
   id: '/users',
   path: '/users',
   getParentRoute: () => rootRoute,
-} as any).lazy(() => import('./routes/users.lazy').then((d) => d.Route))
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -48,7 +43,7 @@ declare module '@tanstack/react-router' {
       id: '/users'
       path: '/users'
       fullPath: '/users'
-      preLoaderRoute: typeof UsersLazyImport
+      preLoaderRoute: typeof UsersImport
       parentRoute: typeof rootRoute
     }
   }
@@ -58,18 +53,18 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/users': typeof UsersLazyRoute
+  '/users': typeof UsersRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/users': typeof UsersLazyRoute
+  '/users': typeof UsersRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
-  '/users': typeof UsersLazyRoute
+  '/users': typeof UsersRoute
 }
 
 export interface FileRouteTypes {
@@ -83,12 +78,12 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  UsersLazyRoute: typeof UsersLazyRoute
+  UsersRoute: typeof UsersRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  UsersLazyRoute: UsersLazyRoute,
+  UsersRoute: UsersRoute,
 }
 
 export const routeTree = rootRoute
@@ -109,7 +104,7 @@ export const routeTree = rootRoute
       "filePath": "index.tsx"
     },
     "/users": {
-      "filePath": "users.lazy.tsx"
+      "filePath": "users.tsx"
     }
   }
 }

@@ -1,12 +1,12 @@
 import { AppSkeleton } from "@/components/app/app-skeleton"
-import { purchaseFrequencyMessages } from "@/messages/purchase-frequency"
+import { purchaseMessages } from "@/messages/purchases"
 import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
   pendingComponent: AppSkeleton,
   loader: async () => {
-    const res = await purchaseFrequencyMessages.getPurchaseFrequency({
+    const res = await purchaseMessages.getPurchaseFrequency({
       from: '2024-01-01',
       to: '2024-01-31',
     })
