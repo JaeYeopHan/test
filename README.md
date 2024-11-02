@@ -67,3 +67,12 @@ yarn start-client
 ### 추가 요구 사항
 
 코드의 가독성을 위해 적절한 주석을 추가하세요. 필요한 경우, 유닛 테스트를 작성하여 주요 기능을 검증하세요.
+
+---
+
+```cmd
+cd apps
+yarn install
+yarn start-server
+yarn start-client
+```
