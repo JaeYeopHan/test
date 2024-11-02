@@ -1,5 +1,8 @@
 import { AppSkeleton } from '@/components/app/app-skeleton'
 import { DataTable } from '@/components/data-table/data-table'
+import { ErrorBoundary } from '@/components/error-boundary/error-boundary'
+import { ErrorAlert } from '@/components/error/error-alert'
+import { SkeletonCard } from '@/components/loading/skeleton-card'
 import { Button } from '@/components/ui/button'
 import { Container } from '@/components/ui/container'
 import { H1 } from '@/components/ui/h1'
@@ -14,7 +17,7 @@ import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, ErrorComponent, retainSearchParams } from '@tanstack/react-router'
 import { ColumnDef } from '@tanstack/react-table'
 import { zodSearchValidator } from '@tanstack/router-zod-adapter'
-import { SearchIcon } from 'lucide-react'
+import { ArrowDownToLine, ArrowUpToLine, SearchIcon } from 'lucide-react'
 import { Suspense } from 'react'
 import { z } from 'zod'
 
@@ -73,7 +76,7 @@ function RouteComponent() {
         <UserNameFilter value={searchUserName} onSubmit={value => navigate({ search: { search_user_name: value } })} />
         <SortSelect
           value={searchSortTotalAmount}
-          onValueChange={value => navigate({ search: { sort_total_amount: value as 'asc' | 'desc' } })}
+          onValueChange={value => navigate({ search: { sort_total_amount: value } })}
         />
       </div>
       <Sheet
@@ -88,14 +91,16 @@ function RouteComponent() {
             navigate({ search: { detail_user_id: row.id, detail_user_name: row.name } })
           }}
         />
-        <SheetContent className="w-full" side='right'>
+        <SheetContent className="w-[640px] sm:max-w-[720px] max-w-[720px]" side='right'>
           <SheetHeader>
             <SheetTitle>[{detailUserId}] {detailUserName}</SheetTitle>
             <SheetDescription>{detailUserName}님의 상세 구매 내역입니다.</SheetDescription>
           </SheetHeader>
-          <Suspense fallback={<div>Loading...</div>}>
-            {detailUserId != null ? <CustomerPurchaseDetail id={detailUserId} /> : null}
-          </Suspense>
+          <ErrorBoundary renderFallback={({ error }) => <ErrorAlert error={error} />}>
+            <Suspense fallback={<SkeletonCard />}>
+              {detailUserId != null ? <CustomerPurchaseDetail id={detailUserId} /> : null}
+            </Suspense>
+          </ErrorBoundary>
         </SheetContent>
       </Sheet>
     </Container>
@@ -174,8 +179,18 @@ function SortSelect({ value, onValueChange, className }: SortSelectProps) {
         <SelectValue placeholder="Sort by total amount" />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="asc">Ascending</SelectItem>
-        <SelectItem value="desc">Descending</SelectItem>
+        <SelectItem value="asc" className='flex items-center gap-2'>
+          <div className='flex items-center gap-2'>
+            <ArrowUpToLine className="size-4" />
+            <span>Ascending</span>
+          </div>
+        </SelectItem>
+        <SelectItem value="desc" className='flex items-center gap-2'>
+          <div className='flex items-center gap-2'>
+            <ArrowDownToLine className="size-4" />
+            <span>Descending</span>
+          </div>
+        </SelectItem>
       </SelectContent>
     </Select>
   )
@@ -227,7 +242,9 @@ function CustomerPurchaseTable({ onRowClick }: CustomerPurchaseTableProps) {
       data={data}
       onRowRender={(node, row) => {
         return (
-          <SheetTrigger asChild onClick={() => {
+          <SheetTrigger
+            asChild
+            onClick={() => {
             onRowClick?.(row)
           }}
           >
@@ -254,12 +271,15 @@ function CustomerPurchaseDetail({ id }: { id: number }) {
       accessorKey: "date",
       header: "Date",
       cell: ({ row }) => {
-        return <div className="text-center px-4 whitespace-nowrap">{row.original.date}</div>
+        return <div className="text-center px-2 whitespace-nowrap">{row.original.date}</div>
       },
     },
     {
       accessorKey: "quantity",
       header: "Quantity",
+      cell: ({ row }) => {
+        return <div className="text-right px-2">{row.original.quantity.toLocaleString()}</div>
+      },
     },
     {
       accessorKey: "product",
@@ -267,16 +287,24 @@ function CustomerPurchaseDetail({ id }: { id: number }) {
     },
     {
       accessorKey: "price",
-      header: "Price",
+      header: "Price (Won)",
       cell: ({ row }) => {
-        return <div className="text-right px-4">{row.original.price.toLocaleString()}</div>
+        return <div className="text-right px-2">{row.original.price.toLocaleString()}</div>
       },
     },
     {
       accessorKey: "imgSrc",
-      header: "Image",
+      header: "",
       cell: ({ row }) => {
-        return <img src={row.original.imgSrc} alt="Product" width={100} height={100} />
+        return (
+          <img
+            className='rounded'
+            src={row.original.imgSrc}
+            alt={`${row.original.product} image`}
+            width={100}
+            height={100}
+          />
+        )
       },
     },
   ]

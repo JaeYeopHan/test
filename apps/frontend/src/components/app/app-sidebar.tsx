@@ -10,8 +10,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { cn } from "@/lib/utils"
 import { Link } from "@tanstack/react-router"
-import { BotIcon, ChevronDown, UserIcon } from "lucide-react"
+import { BotIcon, ChevronDown, HelpCircleIcon, MessageCircleIcon, UserIcon } from "lucide-react"
+import { ComponentProps } from "react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../ui/collapsible"
 
 export function AppSidebar() {
@@ -21,7 +23,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <span>Datarize</span>
+              <h2 className="text-2xl font-bold mt-2">Datarize</h2>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -31,22 +33,8 @@ export function AppSidebar() {
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/">
-                    <BotIcon className="w-4 h-4" />
-                    <span>Frequency</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/users">
-                    <UserIcon className="w-4 h-4" />
-                    <span>Users</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              <AppSidebar.Item icon={<BotIcon className="w-4 h-4" />} to="/">Frequency</AppSidebar.Item>
+              <AppSidebar.Item icon={<UserIcon className="w-4 h-4" />} to="/users">Users</AppSidebar.Item>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -61,22 +49,8 @@ export function AppSidebar() {
             <CollapsibleContent>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link to="/">
-                        <BotIcon className="w-4 h-4" />
-                        <span>Feedback</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton asChild>
-                      <Link to="/">
-                        <UserIcon className="w-4 h-4" />
-                        <span>Support</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <AppSidebar.Item icon={<MessageCircleIcon className="w-4 h-4" />} to="/" disabled>Feedback</AppSidebar.Item>
+                  <AppSidebar.Item icon={<HelpCircleIcon className="w-4 h-4" />} to="/" disabled>Support</AppSidebar.Item>
                 </SidebarMenu>
               </SidebarGroupContent>
             </CollapsibleContent>
@@ -85,5 +59,24 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter />
     </Sidebar>
+  )
+}
+
+AppSidebar.Item = function SidebarItem({ children, icon, to, disabled }: { children: React.ReactNode, icon?: React.ReactNode, to: ComponentProps<typeof Link>['to'], disabled?: boolean }) {
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild>
+        <Link to={to} activeOptions={{ exact: true }} disabled={disabled}>
+          {({ isActive }) => {
+            return (
+              <>
+                {icon}
+                <span className={cn({ 'font-bold': disabled ? false : isActive })}>{children}</span>
+              </>
+            )
+          }}
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
   )
 }

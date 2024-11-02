@@ -1,7 +1,7 @@
 import { AppSkeleton } from "@/components/app/app-skeleton"
 import { DatePicker } from "@/components/date-picker/date-picker"
 import { Button } from "@/components/ui/button"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { ChartContainer, ChartLegend, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Container } from "@/components/ui/container"
 import { H1 } from "@/components/ui/h1"
 import { purchaseMessages } from "@/messages/purchases"
@@ -13,15 +13,18 @@ import { toast } from "sonner"
 import { z } from "zod"
 
 const BASE_DATE = new Date(2024, 7, 1)
+const QUERY_SHORTCUTS = [
+  { label: 'Recent 1 Week', value: [subDays(new Date(), 7).toISOString(), new Date().toISOString()] },
+  { label: 'Recent 1 Month', value: [subDays(new Date(), 30).toISOString(), new Date().toISOString()] },
+  { label: 'Recent 3 Months', value: [subDays(new Date(), 90).toISOString(), new Date().toISOString()] },
+]
 const SearchSchema = z.object({
   from: fallback(z.string().datetime().optional(), subDays(BASE_DATE, 7).toISOString()).default(subDays(BASE_DATE, 30).toISOString()),
   to: fallback(z.string().datetime().optional(), BASE_DATE.toISOString()).default(BASE_DATE.toISOString()),
 })
 
-// TODO: refactor) Date <-> ISOString 변환 처리를 middleware로 처리하기
-// TODO: refactor) DateRangePicker로 분리
+// TODO: enhancement) Date <-> ISOString 변환 처리를 middleware로 처리하기
 // TODO: enhancement) 최근 조회한 기간으로 조회할 수 있도록 버튼 구현
-// TODO: enhancement) 차트 데이터에 지난 기간 데이터 포함시켜서 비교할 수 있도록 하기
 export const Route = createFileRoute('/')({
   component: RouteComponent,
   pendingComponent: AppSkeleton,
@@ -85,20 +88,26 @@ function RouteComponent() {
             }}
           />
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            navigate({ search: { from: subDays(new Date(), 30).toISOString(), to: new Date().toISOString() } })
-          }}
-        >
-          최근 한달
-        </Button>
+        <div className="flex gap-2">
+          {QUERY_SHORTCUTS.map(({label, value}) => (
+            <Button
+              key={label}
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                navigate({ search: { from: value[0], to: value[1] } })
+              }}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
       </section>
-      <section>
+      <section className="p-4 border rounded-lg">
+        <h2 className="text-lg font-bold mb-2">Purchase Frequency Analysis</h2>
         <ChartContainer
           config={{
-            count: { color: '#123123' },
+            count: { color: '#090b1e' },
           }}
           className="h-[320px] w-full"
         >
@@ -111,7 +120,8 @@ function RouteComponent() {
             />
             <YAxis />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <Bar dataKey="count" fill="#123123" radius={4} />
+            <ChartLegend />
+            <Bar dataKey="count" fill="#090b1e" radius={4} />
           </BarChart>
         </ChartContainer>
       </section>
