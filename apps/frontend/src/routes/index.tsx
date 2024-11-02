@@ -1,4 +1,5 @@
 import { AppSkeleton } from "@/components/app/app-skeleton"
+import { Container } from "@/components/ui/container"
 import { purchaseMessages } from "@/messages/purchases"
 import { createFileRoute } from "@tanstack/react-router"
 
@@ -17,5 +18,11 @@ export const Route = createFileRoute('/')({
 
 function RouteComponent() {
   const data = Route.useLoaderData()
-  return <div className="p-2">Frequency: {JSON.stringify(data)}</div>
+
+  return (
+    <Container>
+      <h1>Frequency</h1>
+      Frequency: {JSON.stringify(data)}
+    </Container>
+  )
 }
