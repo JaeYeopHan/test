@@ -4,16 +4,31 @@ import { CustomerPurchaseRecordSchema } from "@/models/customer/purchase"
 import { z } from "zod"
 
 interface CustomersMessages {
-  getCustomers: () => Promise<GetCustomersResponse>
-  getPurchaseByCustomer: (params: GetPurchaseByCustomerParams) => Promise<GetPurchaseByCustomerResponse>
+  getCustomers: (params?: GetCustomersRequest) => Promise<GetCustomersResponse>
+  getPurchasesByCustomer: (params: GetPurchasesByCustomerParams) => Promise<GetPurchasesByCustomerResponse>
 }
 
-const GetCustomersResponseSchema = z.array(CustomerSchema)
+const GetCustomersRequestSchema = z.object({
+  sortBy: z.enum(['asc', 'desc']).optional(),
+  name: z.string().optional(),
+})
+
+type GetCustomersRequest = z.infer<typeof GetCustomersRequestSchema>
+
+const GetCustomersResponseSchema = z.array(
+  z.object({
+    count: z.number(),
+    totalAmount: z.number(),
+  }).merge(CustomerSchema),
+)
 
 type GetCustomersResponse = z.infer<typeof GetCustomersResponseSchema>
 
-async function getCustomers(): Promise<GetCustomersResponse> {
-  const _response = await httpClient.get('/api/customers')
+async function getCustomers(params?: GetCustomersRequest): Promise<GetCustomersResponse> {
+  const queryParams = new URLSearchParams()
+  if (params?.sortBy) queryParams.set('sortBy', params.sortBy)
+  if (params?.name) queryParams.set('name', params.name)
+  const _response = await httpClient.get(`/api/customers?${queryParams.toString()}` )
   const response = GetCustomersResponseSchema.parse(_response)
 
   return response
@@ -23,20 +38,20 @@ const GetPurchaseByCustomerParamsSchema = z.object({
   customerId: z.number(),
 })
 
-type GetPurchaseByCustomerParams = z.infer<typeof GetPurchaseByCustomerParamsSchema>
+type GetPurchasesByCustomerParams = z.infer<typeof GetPurchaseByCustomerParamsSchema>
 
-const GetPurchaseByCustomerResponseSchema = z.array(CustomerPurchaseRecordSchema)
+const GetPurchasesByCustomerResponseSchema = z.array(CustomerPurchaseRecordSchema)
 
-type GetPurchaseByCustomerResponse = z.infer<typeof GetPurchaseByCustomerResponseSchema>
+type GetPurchasesByCustomerResponse = z.infer<typeof GetPurchasesByCustomerResponseSchema>
 
-async function getPurchaseByCustomer(params: GetPurchaseByCustomerParams): Promise<GetPurchaseByCustomerResponse> {
+async function getPurchasesByCustomer(params: GetPurchasesByCustomerParams): Promise<GetPurchasesByCustomerResponse> {
   const _response = await httpClient.get(`/api/customers/${params.customerId}/purchases`)
-  const response = GetPurchaseByCustomerResponseSchema.parse(_response)
+  const response = GetPurchasesByCustomerResponseSchema.parse(_response)
 
   return response
 }
 
 export const customersMessages: CustomersMessages = {
   getCustomers,
-  getPurchaseByCustomer,
+  getPurchasesByCustomer,
 }
